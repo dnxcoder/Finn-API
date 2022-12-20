@@ -14,10 +14,16 @@ id - uuid
 app.post("/account", (request, response) => {
   const { cpf, name } = request.body;
 
-  const id = uuidv4();
+  const customerAlreadyExists = costumers.some(
+    (costumer) => costumer.cpf === cpf
+  );
+
+  if (customerAlreadyExists) {
+    return response.status(400).json({ error: "Costumer already Exists!" });
+  }
 
   costumers.push({
-    id,
+    id: uuidv4(),
     cpf,
     name,
     statement: [],
