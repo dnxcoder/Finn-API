@@ -11,6 +11,24 @@ cpf - string
 name - string
 id - uuid
 */
+
+//Middleware
+function verifyIfExistsAccountCPF(request, response, next) {
+  const { cpf } = request.headers;
+
+  const customer = costumers.find((customer) => customer.cpf === cpf);
+
+  if (!customer) {
+    return response.status(400).json({ error: "Customer not found" });
+  }
+
+  //Here we are adding to the request a propertie called customer
+  //this way every request that is using this middlaware will already have the costumer
+  request.customer = customer;
+
+  return next();
+}
+
 app.post("/account", (request, response) => {
   const { cpf, name } = request.body;
 
@@ -32,16 +50,10 @@ app.post("/account", (request, response) => {
   return response.status(201).send();
 });
 
-app.get("/statement", (request, response) => {
-  const { cpf } = request.headers;
+app.get("/statement", verifyIfExistsAccountCPF, (request, response) => {
+  const { costumer } = request.statement;
 
-  const customer = costumers.find((customer) => customer.cpf === cpf);
-
-  if (!customer) {
-    return response.status(400).json({ error: "Customer not found" });
-  }
-
-  return response.json(customer.statement);
+  return response.json(request.customer.statement);
 });
 
 app.listen(3333);
